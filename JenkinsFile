@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKER_IMAGE = "yourdockerhubusername/myapp"
+        CONTAINER_NAME = "myapp-container"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-repo/my-app.git'
+            }
+        }
+
+        stage('Building pyapp Docker Image') {
+            steps {
+                bat """
+                docker build -t %DOCKER_IMAGE%:latest .
+                """
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                bat """
+                echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
+                """
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                bat """
+                docker push %DOCKER_IMAGE%:latest
+                """
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                powershell """
+                if (docker ps -q -f name=${CONTAINER_NAME}) {
+                    docker stop ${CONTAINER_NAME}
+                    docker rm ${CONTAINER_NAME}
+                }
+                docker run -d --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:latest
+                """
+            }
+        }
+    }
+
+    post {
+        always {
+            bat 'docker logout'
+        }
+    }
+}
