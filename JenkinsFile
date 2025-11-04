@@ -3,18 +3,18 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKER_IMAGE = "yourdockerhubusername/myapp"
+        DOCKER_IMAGE = "yesiamkriti/myapp"
         CONTAINER_NAME = "myapp-container"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-repo/my-app.git'
+                git 'https://github.com/HeerItsOnlyU/jenkin-integration'
             }
         }
 
-        stage('Building pyapp Docker Image') {
+        stage('Building myapp Docker Image') {
             steps {
                 bat """
                 docker build -t %DOCKER_IMAGE%:latest .
@@ -30,7 +30,7 @@ pipeline {
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Pushing to DockerHub') {
             steps {
                 bat """
                 docker push %DOCKER_IMAGE%:latest
@@ -57,3 +57,4 @@ pipeline {
         }
     }
 }
+
